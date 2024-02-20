@@ -1,0 +1,150 @@
+import mysql.connector
+conn = mysql.connector.connect(user='root', password='12345',
+                               host='localhost',
+                               database='store')
+cursor=conn.cursor()
+
+from gtts import gTTS
+from playsound import playsound
+import os
+cursor = conn.cursor()
+cursor.execute("Show tables")
+r=cursor.fetchall()
+
+if ("stock") in r or ("stock",) in r:
+    cursor.execute("drop table stock")
+cursor.execute("Create table stock(Item varchar(50),Colour varchar(50),CostPrice integer(250),SellingPrice integer(250),Units integer(250))")
+cursor.execute('Insert into stock Values("Shirt","Black",500,1000,10),("Shirt","Blue",400,1500,15),("Trousers","Brown",600,200,9),("Jeans","Navy Blue",1000,3000,12),("Shoes","White",900,1800,5),("Shoes","Grey",2000,6000,11),("Belt","Black",100,600,5)')       
+
+
+# FUNCTION FOR VIEWING THE ENTIRE STOCK
+def function1():
+    cursor.execute("Select * from stock")
+    result=cursor.fetchall()
+    m = gTTS("Greetings. Welcome to the stocks window. Here you can view the entire stock available in the store")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    print("ITEM  COLOUR CP SP UNITS")
+    for row in result:
+        print()
+        for col in row:
+            print(col,end=' ')
+    m = gTTS("Thankyou!")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    
+#FUNCTION FOR VIEWING THE SORTED STOCK            
+def function2():
+    m = gTTS("Greetings. Welcome to the stocks window. Here you can view the stock of each item sorted according to their colours ")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")    
+    item=input("Please enter the item ")
+    colour=input("Please enter the colour of the item or enter all if you want to display the total units of that item ")
+    item=item.title()
+    colour=colour.title()
+    sql1="Select sum(Units) from stock where Item='"+item+"'"
+    sql2="Select sum(Units) from stock where Item='"+item+ "' and Colour='"+colour+"'"
+    if colour=="all":
+        cursor.execute(sql1)
+        r1=cursor.fetchall()
+        print(r1)
+    else:
+        cursor.execute(sql2)
+        r1=cursor.fetchall()
+        print(r1[0][0])
+    m = gTTS("Thankyou!")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    
+        
+#FUNCTION FOR EDITING THE INFORMATION
+def function3():
+    m = gTTS("Greetings. Welcome to the edit window. Here you can edit the Selling Price or cost price of any item available in store ")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    item=input("Please enter the item ").title()
+    colour=input("Please enter the colour of the item ").title()
+    n=int(input("Please enter 1 to change the Selling Price, 2 to change the Cost Price and 3 to change the number of units "))
+    if n==1:
+        x="SellingPrice"
+    elif n==2:
+        x="CostPrice"
+    elif n==3:
+        x="Units"
+    s1="Select "+x+" from stock where Item='"+item+"' and Colour='"+colour+"'"
+    cursor.execute(s1)
+    r=cursor.fetchall()
+    print("The current "+x+" is: "+str(r[0][0]))
+    new=input("Please enter the new "+x)
+    s="Update stock set "+x+"="+new+" where Item='"+item+"' and Colour='"+colour+"'"
+    cursor.execute(s)
+    a="Select "+x+" from stock where Item='"+item+"' and Colour='"+colour+"'"
+    cursor.execute(a)
+    res=cursor.fetchall()
+    print("The new "+x+" is: "+str(res[0][0])) 
+    
+#FUNCTION FOR DISPLAYING THE BILL AND PROFIT    
+def function4():
+    m = gTTS("Greetings. Welcome to the transactions window. Here you can view the total bill and profit after every purchase")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    n=int(input("Please enter the number of distinct items "))
+    bill,profit=0,0
+    for x in range(n):
+        item=input("Please enter the the item ").title()
+        colour=input("Please enter the colour of the item ").title()
+        unit=int(input("Please enter the number of units "))
+        str1="Select SellingPrice from stock where Item='"+item+"'and Colour='"+colour+"'"
+        str2="Select CostPrice from stock where Item='"+item+"'and Colour='"+colour+"'"
+        str3="Select Units from stock where Item='"+item+"'and Colour='"+colour+"'"
+        cursor.execute(str3)
+        r=cursor.fetchall()
+        r=r[0][0]
+        new=r-unit
+        str4="Update stock set Units="+ str(new)+ " where Item='"+item+"'and Colour='"+colour+"'"
+        cursor.execute(str4)
+        cursor.execute(str1)
+        r1=cursor.fetchall()
+        r1=r1[0][0]
+        bill=bill+unit*r1
+        cursor.execute(str2)
+        r2=cursor.fetchall()
+        r2=r2[0][0]
+        profit=profit+unit*r1-unit*r2
+    print("The total bill is Rupees ",bill)
+    c=input("Enter Y if you want to display the profit otherwise enter N ").upper()
+    if c=='Y':
+        print("The total profit is Rupees ", profit)
+    m = gTTS("Thankyou!")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    
+
+    
+choice=1
+while choice==1:
+    var=int(input("Please enter one of the numbers displayed below to perform the required function\n 1 to view stock all at once \n 2 to view it sorted \n 3 to edit price \n 4 for transactions  "))
+    if var==1:
+        function1()
+    elif var==2:
+        function2()
+    elif var==3:
+        function3()
+    elif var==4:
+        function4()
+    else:
+        continue
+    choice=int(input("Press 1 to continue or 0 to exit "))
+if choice==0:
+    m = gTTS("Exiting")
+    os.system("del sound.mp3")
+    m.save("sound.mp3")
+    playsound("sound.mp3")
+    print('thankyou')
